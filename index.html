@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/multi-style-layer.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="data/IndianOccupiedKashmir_1.js"></script>
+        <script src="data/pak_admbnda_adm0_wfp_20220909_2.js"></script>
+        <script src="data/District_Boundary_3.js"></script>
+        <script src="data/pak_admbndp_admALL_wfp_itos_20220909_4.js"></script>
+		<script>
+		let refreshTimeout;
+		let activityTimeout;
+		const refreshDelay = 30000; // 30 seconds
+		const activityCheckDelay = 5000; // 5 seconds after last activity
+
+		function refreshPage() {
+		window.location.reload();
+		}
+
+		function resetRefreshTimer() {
+		clearTimeout(refreshTimeout);
+		clearTimeout(activityTimeout);
+			activityTimeout = setTimeout(() => {
+			refreshTimeout = setTimeout(refreshPage, refreshDelay);
+		}, activityCheckDelay);
+		}
+
+    function setupActivityListeners() {
+      const events = ['mousemove', 'mousedown', 'wheel', 'touchstart', 'keydown'];
+      events.forEach(event => window.addEventListener(event, resetRefreshTimer));
+    }
+
+    window.onload = function() {
+      refreshTimeout = setTimeout(refreshPage, refreshDelay);
+      setupActivityListeners();
+    };
+  </script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[30.89219273290172,67.26113269713012],[37.02682930688516,78.28677969043738]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_GoogleMap_0');
+        map.getPane('pane_GoogleMap_0').style.zIndex = 400;
+        var layer_GoogleMap_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleMap_0',
+            opacity: 0.7,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 18
+        });
+        layer_GoogleMap_0;
+        map.addLayer(layer_GoogleMap_0);
+        function pop_IndianOccupiedKashmir_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(feature.properties['OBJECTID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PROVINCE'] !== null ? autolinker.link(feature.properties['PROVINCE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DISTRICT'] !== null ? autolinker.link(feature.properties['DISTRICT'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(feature.properties['Shape_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADMIN_UNIT'] !== null ? autolinker.link(feature.properties['ADMIN_UNIT'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Le_1'] !== null ? autolinker.link(feature.properties['Shape_Le_1'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Le_2'] !== null ? autolinker.link(feature.properties['Shape_Le_2'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(feature.properties['Shape_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_IndianOccupiedKashmir_1_0() {
+            return {
+                pane: 'pane_IndianOccupiedKashmir_1',
+                opacity: 1,
+                color: 'rgba(135,195,60,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 4.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,251,0,0.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_IndianOccupiedKashmir_1');
+        map.getPane('pane_IndianOccupiedKashmir_1').style.zIndex = 401;
+        map.getPane('pane_IndianOccupiedKashmir_1').style['mix-blend-mode'] = 'normal';
+        var layer_IndianOccupiedKashmir_1 = new L.geoJson(json_IndianOccupiedKashmir_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_IndianOccupiedKashmir_1',
+            layerName: 'layer_IndianOccupiedKashmir_1',
+            pane: 'pane_IndianOccupiedKashmir_1',
+            onEachFeature: pop_IndianOccupiedKashmir_1,
+            style: style_IndianOccupiedKashmir_1_0,
+        });
+        bounds_group.addLayer(layer_IndianOccupiedKashmir_1);
+        map.addLayer(layer_IndianOccupiedKashmir_1);
+        function pop_pak_admbnda_adm0_wfp_20220909_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(feature.properties['Shape_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(feature.properties['Shape_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_EN'] !== null ? autolinker.link(feature.properties['ADM0_EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_PCODE'] !== null ? autolinker.link(feature.properties['ADM0_PCODE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_REF'] !== null ? autolinker.link(feature.properties['ADM0_REF'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0ALT1EN'] !== null ? autolinker.link(feature.properties['ADM0ALT1EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0ALT2EN'] !== null ? autolinker.link(feature.properties['ADM0ALT2EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['date'] !== null ? autolinker.link(feature.properties['date'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['validOn'] !== null ? autolinker.link(feature.properties['validOn'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['validTo'] !== null ? autolinker.link(feature.properties['validTo'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_pak_admbnda_adm0_wfp_20220909_2_0() {
+            return {
+                pane: 'pane_pak_admbnda_adm0_wfp_20220909_2',
+                opacity: 1,
+                color: 'rgba(77,175,74,0.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_pak_admbnda_adm0_wfp_20220909_2');
+        map.getPane('pane_pak_admbnda_adm0_wfp_20220909_2').style.zIndex = 402;
+        map.getPane('pane_pak_admbnda_adm0_wfp_20220909_2').style['mix-blend-mode'] = 'normal';
+        var layer_pak_admbnda_adm0_wfp_20220909_2 = new L.geoJson(json_pak_admbnda_adm0_wfp_20220909_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_pak_admbnda_adm0_wfp_20220909_2',
+            layerName: 'layer_pak_admbnda_adm0_wfp_20220909_2',
+            pane: 'pane_pak_admbnda_adm0_wfp_20220909_2',
+            onEachFeature: pop_pak_admbnda_adm0_wfp_20220909_2,
+            style: style_pak_admbnda_adm0_wfp_20220909_2_0,
+        });
+        bounds_group.addLayer(layer_pak_admbnda_adm0_wfp_20220909_2);
+        map.addLayer(layer_pak_admbnda_adm0_wfp_20220909_2);
+        function pop_District_Boundary_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(feature.properties['OBJECTID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PROVINCE'] !== null ? autolinker.link(feature.properties['PROVINCE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DISTRICT'] !== null ? autolinker.link(feature.properties['DISTRICT'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(feature.properties['Shape_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADMIN_UNIT'] !== null ? autolinker.link(feature.properties['ADMIN_UNIT'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Le_1'] !== null ? autolinker.link(feature.properties['Shape_Le_1'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Le_2'] !== null ? autolinker.link(feature.properties['Shape_Le_2'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(feature.properties['Shape_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_District_Boundary_3_0() {
+            return {
+                pane: 'pane_District_Boundary_3',
+                interactive: true,
+            }
+        }
+        function style_District_Boundary_3_1() {
+            return {
+                pane: 'pane_District_Boundary_3',
+                opacity: 1,
+                color: 'rgba(247,225,55,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_District_Boundary_3');
+        map.getPane('pane_District_Boundary_3').style.zIndex = 403;
+        map.getPane('pane_District_Boundary_3').style['mix-blend-mode'] = 'normal';
+        var layer_District_Boundary_3 = new L.geoJson.multiStyle(json_District_Boundary_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_District_Boundary_3',
+            layerName: 'layer_District_Boundary_3',
+            pane: 'pane_District_Boundary_3',
+            onEachFeature: pop_District_Boundary_3,
+            styles: [style_District_Boundary_3_0,style_District_Boundary_3_1,]
+        });
+        bounds_group.addLayer(layer_District_Boundary_3);
+        map.addLayer(layer_District_Boundary_3);
+        function pop_pak_admbndp_admALL_wfp_itos_20220909_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(feature.properties['Shape_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(feature.properties['Shape_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM3_EN'] !== null ? autolinker.link(feature.properties['ADM3_EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM3_PCODE'] !== null ? autolinker.link(feature.properties['ADM3_PCODE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM3_REF'] !== null ? autolinker.link(feature.properties['ADM3_REF'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM3ALT1EN'] !== null ? autolinker.link(feature.properties['ADM3ALT1EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM3ALT2EN'] !== null ? autolinker.link(feature.properties['ADM3ALT2EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">ADM2_EN</th>\
+                        <td>' + (feature.properties['ADM2_EN'] !== null ? autolinker.link(feature.properties['ADM2_EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2_PCODE'] !== null ? autolinker.link(feature.properties['ADM2_PCODE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM1_EN'] !== null ? autolinker.link(feature.properties['ADM1_EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM1_PCODE'] !== null ? autolinker.link(feature.properties['ADM1_PCODE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_EN'] !== null ? autolinker.link(feature.properties['ADM0_EN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_PCODE'] !== null ? autolinker.link(feature.properties['ADM0_PCODE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['date'] !== null ? autolinker.link(feature.properties['date'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['validOn'] !== null ? autolinker.link(feature.properties['validOn'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['validTo'] !== null ? autolinker.link(feature.properties['validTo'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['POINT_X'] !== null ? autolinker.link(feature.properties['POINT_X'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['POINT_Y'] !== null ? autolinker.link(feature.properties['POINT_Y'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_pak_admbndp_admALL_wfp_itos_20220909_4_0() {
+            return {
+                pane: 'pane_pak_admbndp_admALL_wfp_itos_20220909_4',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,1,14,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_pak_admbndp_admALL_wfp_itos_20220909_4');
+        map.getPane('pane_pak_admbndp_admALL_wfp_itos_20220909_4').style.zIndex = 404;
+        map.getPane('pane_pak_admbndp_admALL_wfp_itos_20220909_4').style['mix-blend-mode'] = 'normal';
+        var layer_pak_admbndp_admALL_wfp_itos_20220909_4 = new L.geoJson(json_pak_admbndp_admALL_wfp_itos_20220909_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_pak_admbndp_admALL_wfp_itos_20220909_4',
+            layerName: 'layer_pak_admbndp_admALL_wfp_itos_20220909_4',
+            pane: 'pane_pak_admbndp_admALL_wfp_itos_20220909_4',
+            onEachFeature: pop_pak_admbndp_admALL_wfp_itos_20220909_4,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_pak_admbndp_admALL_wfp_itos_20220909_4_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_pak_admbndp_admALL_wfp_itos_20220909_4);
+        map.addLayer(layer_pak_admbndp_admALL_wfp_itos_20220909_4);
+        setBounds();
+        resetLabels([layer_IndianOccupiedKashmir_1,layer_District_Boundary_3]);
+        map.on("zoomend", function(){
+            resetLabels([layer_IndianOccupiedKashmir_1,layer_District_Boundary_3]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_IndianOccupiedKashmir_1,layer_District_Boundary_3]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_IndianOccupiedKashmir_1,layer_District_Boundary_3]);
+        });
+        </script>
+    </body>
+</html>
